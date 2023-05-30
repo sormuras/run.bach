@@ -12,7 +12,7 @@ import java.util.spi.ToolProvider;
  * Bach's Bootstrap Program.
  *
  * <ul>
- *   <li>{@code java @.bach/src/run.bach/run/bach/Bootstrap.java [<args...>]}
+ *   <li>{@code java .bach/src/run.bach/run/bach/Bootstrap.java [<args...>]}
  *   <li>{@code java @bach <tool> [<args...>]}
  * </ul>
  */

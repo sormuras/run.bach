@@ -27,9 +27,9 @@ public @interface Configuration {
     }
 
     @interface Task {
-      String MODULE_NAME = "NAME_OF_ANNOTATED_MODULE";
+      String MODULE_NAME_AND_TASK = "NAME_OF_ANNOTATED_MODULE/task";
 
-      String namespace() default MODULE_NAME;
+      String namespace() default MODULE_NAME_AND_TASK;
 
       String name();
 

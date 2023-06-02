@@ -27,8 +27,8 @@ record Configurator() {
         logger.log(DEBUG, "Converting task annotations into tool instances");
         for (var task : configuration.toolbox().tasks()) {
           var namespace =
-              Configuration.Toolbox.Task.MODULE_NAME.equals(task.namespace())
-                  ? module.getName()
+              Configuration.Toolbox.Task.MODULE_NAME_AND_TASK.equals(task.namespace())
+                  ? module.getName() + '/' + "task"
                   : task.namespace();
           var name = task.name();
           var version = task.version().isBlank() ? null : task.version();

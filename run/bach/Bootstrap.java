@@ -25,10 +25,10 @@ class Bootstrap {
   private static void createDirectoriesAndFiles() throws Exception {
     var logDirectory = Files.createDirectories(Path.of(".bach", "var", "log"));
     Files.writeString(
-            logDirectory.resolve("bootstrap.log"),
-            """
-            instant=%s
-            """.formatted(Instant.now()));
+        logDirectory.resolve("bootstrap.log"),
+        """
+        instant=%s
+        """.formatted(Instant.now()));
 
     var bachFile = Path.of("bach");
     if (Files.notExists(bachFile)) Files.writeString(bachFile, BACH_FILE_STRING);
@@ -69,7 +69,6 @@ class Bootstrap {
       throw new RuntimeException(exception);
     }
     return List.copyOf(names);
-
   }
 
   private static final String BACH_FILE_STRING =
@@ -77,34 +76,34 @@ class Bootstrap {
       #
       # Java Launcher Argument File running module "run.bach"
       #
-      
+
       #
       # Common debug-related arguments
       #
       # --show-version
       # --show-module-resolution
-      
+
       #
       # Logging Properties
       #
       -Djava.util.logging.config.file=.bach/logging.properties
-      
+
       #
       # Java Flight Recorder arguments
       #
       -Xlog:jfr+startup=error
       -XX:StartFlightRecording:name=Bach,filename=.bach/var/log/recording.jfr,dumponexit=true
-      
+
       #
       # Path to all application modules
       #
       --module-path .bach/var/cache/bootstrap
-      
+
       #
       # Set of additional root modules
       #
       --add-modules ALL-DEFAULT,ALL-MODULE-PATH
-      
+
       #
       # Module to launch
       #
@@ -123,16 +122,16 @@ class Bootstrap {
       .level=INFO
       jdk.tool.level=ALL
       run.bach.level=ALL
-            
+
       handlers=java.util.logging.ConsoleHandler,java.util.logging.FileHandler
-            
+
       java.util.logging.ConsoleHandler.level=INFO
       java.util.logging.ConsoleHandler.formatter=java.util.logging.SimpleFormatter
-            
+
       java.util.logging.FileHandler.level=ALL
       java.util.logging.FileHandler.formatter=java.util.logging.XMLFormatter
       java.util.logging.FileHandler.pattern=.bach/var/log/logging.xml
-            
+
       java.util.logging.SimpleFormatter.format=%4$s %2$s %5$s%6$s%n
       """;
 }

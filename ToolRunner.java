@@ -29,6 +29,11 @@ public interface ToolRunner {
   }
 
   /** {@return an instance of the default tool runner using the system tool finder} */
+  static ToolRunner ofSilence() {
+    return new ToolSpace(ToolFinder.ofSystem(), Level.OFF, ToolSpace.Flag.SILENT);
+  }
+
+  /** {@return an instance of the default tool runner using the system tool finder} */
   static ToolRunner ofSystem() {
     class SystemRunner {
       static final ToolRunner SINGLETON = ToolRunner.of(ToolFinder.ofSystem());

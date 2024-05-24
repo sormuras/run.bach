@@ -5,8 +5,11 @@
 
 package run.bach.workflow;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.lang.System.Logger.Level;
 import java.nio.file.DirectoryNotEmptyException;
+import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Comparator;
@@ -21,7 +24,7 @@ public interface Cleaner extends Action {
       var kind =
           Files.isRegularFile(path) ? "file" : Files.isDirectory(path) ? "directory" : "path";
       log("Deleting %s %s ...".formatted(kind, path.toUri()));
-      delete(path);
+      cleanerDeleteRecursively(path);
     }
   }
 
@@ -29,7 +32,7 @@ public interface Cleaner extends Action {
     return List.of(workflow().folders().out());
   }
 
-  private void delete(Path file) {
+  default void cleanerDeleteRecursively(Path file) {
     if (!Files.exists(file)) return;
     try {
       try {
@@ -46,6 +49,14 @@ public interface Cleaner extends Action {
       }
     } catch (Exception exception) {
       throw new RuntimeException(exception);
+    }
+  }
+
+  default void cleanerPrune(Path directory, DirectoryStream.Filter<? super Path> filter) {
+    try (var stream = Files.newDirectoryStream(directory, filter)) {
+      for (var file : stream) cleanerDeleteRecursively(file);
+    } catch (IOException exception) {
+      throw new UncheckedIOException("Pruning failed: " + directory, exception);
     }
   }
 }

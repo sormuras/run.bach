@@ -17,6 +17,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.Set;
@@ -30,6 +31,34 @@ public final class ModuleFinders {
 
   public static ModuleFinder ofProperties(String properties) {
     return new ModuleReferenceFinder(references(properties));
+  }
+
+  public static ModuleFinder ofLookup(ModuleLookup lookup) {
+    return new LookupModuleFinder(lookup);
+  }
+
+  private static class LookupModuleFinder implements ModuleFinder {
+    private final ModuleLookup lookup;
+    private final Map<String, ModuleReference> all = new TreeMap<>();
+
+    private LookupModuleFinder(ModuleLookup lookup) {
+      this.lookup = lookup;
+    }
+
+    @Override
+    public Optional<ModuleReference> find(String name) {
+      if (all.containsKey(name)) return Optional.of(all.get(name));
+      var location = lookup.lookupModule(name);
+      if (location == null) return Optional.empty();
+      var reference = new ExternalModuleReference(name, location);
+      all.put(name, reference);
+      return Optional.of(reference);
+    }
+
+    @Override
+    public Set<ModuleReference> findAll() {
+      return Set.copyOf(all.values());
+    }
   }
 
   public record ModuleReferenceFinder(List<? extends ModuleReference> references)

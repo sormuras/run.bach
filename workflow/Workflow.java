@@ -7,6 +7,7 @@ package run.bach.workflow;
 
 import java.lang.module.ModuleFinder;
 import java.util.function.UnaryOperator;
+import run.bach.ModuleLookup;
 import run.bach.ToolFinder;
 import run.bach.ToolRunner;
 import run.bach.internal.PathSupport;
@@ -37,6 +38,10 @@ public record Workflow(Folders folders, Structure structure, ToolRunner runner) 
 
   public Workflow withTimestamp(String zonedDateTime) {
     return new Workflow(folders, structure.withTimestamp(zonedDateTime), runner);
+  }
+
+  public Workflow withLibrary(ModuleLookup library) {
+    return new Workflow(folders, structure.withLibrary(library), runner);
   }
 
   public Workflow withMainSpace(UnaryOperator<Structure.Space> operator) {

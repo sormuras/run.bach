@@ -17,6 +17,9 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
+import jdk.jfr.Category;
+import jdk.jfr.Name;
+import jdk.jfr.StackTrace;
 import run.bach.internal.ModulesSupport;
 
 public interface ModuleResolver {
@@ -55,37 +58,40 @@ public interface ModuleResolver {
     public void resolveMissingModules() {
       var resolved = new TreeSet<String>();
       var difference = new TreeSet<String>();
-      var event = Event.ResolveModules.begin(resolved);
+      var event = new Event.ResolveModules();
+      event.begin();
       while (true) {
         var finders = List.of(ModuleFinder.of(directory)); // recreate in every loop
         var missing = ModulesSupport.listMissingNames(finders, Set.of());
         if (missing.isEmpty()) break;
-        var inner = Event.ResolveModules.begin(missing);
         difference.retainAll(missing);
         if (!difference.isEmpty()) throw new IllegalStateException("Still missing?! " + difference);
         difference.addAll(missing);
         missing.forEach(this::resolveModule);
         resolved.addAll(missing);
-        inner.commit();
       }
-      event.update(resolved).commit();
+      event.commit(resolved);
     }
 
+    @Category("Bach")
+    @StackTrace(false)
     abstract static sealed class Event extends jdk.jfr.Event {
+      @Name("run.bach.ModuleResolverAlreadyResolved")
       static final class AlreadyResolved extends Event {
-        String name;
+        String module;
         String target;
 
         static void commit(ModuleReference reference) {
           var event = new AlreadyResolved();
           if (event.shouldCommit()) {
-            event.name = reference.descriptor().name();
+            event.module = reference.descriptor().name();
             event.target = reference.location().map(URI::toString).orElse("?");
             event.commit();
           }
         }
       }
 
+      @Name("run.bach.ModuleResolverResolvedModule")
       static final class ResolveModule extends Event {
         String name;
         String source;
@@ -101,25 +107,14 @@ public interface ModuleResolver {
         }
       }
 
+      @Name("run.bach.ModuleResolverResolvedModules")
       static final class ResolveModules extends Event {
-        String names;
         int count;
-
-        static ResolveModules begin(Collection<String> modules) {
-          var event = new ResolveModules();
-          event.begin();
-          return event.update(modules);
-        }
-
-        ResolveModules update(Collection<String> modules) {
+        String names;
+        void commit(Collection<String> modules) {
           count = modules.size();
           names = String.join(",", modules);
-          return this;
-        }
-
-        @Override
-        public String toString() {
-          return "Resolved %d module%s: %s".formatted(count, count == 1 ? "" : "s", names);
+          commit();
         }
       }
     }

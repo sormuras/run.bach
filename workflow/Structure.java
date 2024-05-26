@@ -22,6 +22,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.stream.Stream;
+import run.bach.ModuleFinders;
+import run.bach.ModuleLookup;
 import run.bach.internal.ModuleDescriptorSupport;
 import run.bach.internal.ModuleDescriptorSupport.ModuleInfoReference;
 import run.bach.internal.ModuleDescriptorSupport.ModuleReferenceFinder;
@@ -53,6 +55,14 @@ public record Structure(Basics basics, Spaces spaces, ModuleFinder libraries) {
 
   public Structure with(Space space) {
     return new Structure(basics, spaces.with(space), libraries);
+  }
+
+  public Structure withLibrary(ModuleLookup library) {
+    return withLibrary(ModuleFinders.ofLookup(library));
+  }
+
+  public Structure withLibrary(ModuleFinder library) {
+    return new Structure(basics, spaces, ModuleFinder.compose(libraries, library));
   }
 
   /** Fundamental project-related information. */

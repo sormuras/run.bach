@@ -7,17 +7,19 @@ package run.bach.internal;
 
 import java.io.BufferedInputStream;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.OutputStream;
-import java.io.StringReader;
+import java.io.UncheckedIOException;
 import java.math.BigInteger;
+import java.net.URI;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.security.DigestOutputStream;
 import java.security.MessageDigest;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Properties;
 import java.util.TreeSet;
 
 public interface PathSupport {
@@ -67,26 +69,18 @@ public interface PathSupport {
     return name != null ? name.toString() : defaultName;
   }
 
-  static Properties properties(Path file) {
-    return properties(read(file));
-  }
-
-  static Properties properties(String string) {
-    var properties = new Properties();
-    try {
-      properties.load(new StringReader(string));
-    } catch (Exception exception) {
-      throw new RuntimeException(exception);
-    }
-    return properties;
-  }
-
-  static String read(Path file) {
-    if (Files.notExists(file)) throw new RuntimeException("File not found: " + file);
-    try {
-      return Files.readString(file);
-    } catch (Exception exception) {
-      throw new RuntimeException("Reading file failed: " + file.toUri(), exception);
+  static void copy(Path target, URI source) {
+    if (!Files.exists(target)) {
+      try (var stream =
+                   source.getScheme().startsWith("http")
+                           ? source.toURL().openStream()
+                           : Files.newInputStream(Path.of(source))) {
+        var parent = target.getParent();
+        if (parent != null) Files.createDirectories(parent);
+        Files.copy(stream, target, StandardCopyOption.REPLACE_EXISTING);
+      } catch (IOException exception) {
+        throw new UncheckedIOException(exception);
+      }
     }
   }
 }

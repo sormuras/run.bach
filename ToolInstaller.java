@@ -10,13 +10,13 @@ import java.net.URI;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.spi.ToolProvider;
 import java.util.stream.Stream;
 import run.bach.internal.JavaApplicationInstaller;
+import run.bach.internal.PathSupport;
 
 /** An interface for installers to fetch required files and compose them into a tool provider. */
 public interface ToolInstaller {
@@ -74,17 +74,7 @@ public interface ToolInstaller {
   }
 
   default void download(Path target, URI source) throws IOException {
-    if (!Files.exists(target)) {
-      try (var stream =
-          source.getScheme().startsWith("http")
-              ? source.toURL().openStream()
-              : Files.newInputStream(Path.of(source))) {
-        var parent = target.getParent();
-        if (parent != null) Files.createDirectories(parent);
-        Files.copy(stream, target, StandardCopyOption.REPLACE_EXISTING);
-      }
-    }
-    // TODO Verify target bits.
+    PathSupport.copy(target, source);
   }
 
   private static ToolProvider install(ToolInstaller installer, Path directory) {

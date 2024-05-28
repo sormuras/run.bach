@@ -14,32 +14,32 @@ import run.bach.internal.ModulesSupport;
 import run.bach.workflow.Structure.DeclaredModules;
 import run.bach.workflow.Structure.Space;
 
-public interface Restorer extends Action {
-  default void restore() {
-    var lib = restorerUsesLibraryDirectory();
+public interface Preparer extends Action {
+  default void prepare() {
+    var lib = preparerUsesLibraryDirectory();
     var finder = workflow().structure().libraries();
     var resolver = ModuleResolver.ofSingleDirectory(lib, finder);
-    try (var events = restorerUsesEventRecordingStream()) {
-      say("Restoring required modules ...");
-      restorerUsesModuleNames().forEach(resolver::resolveModule);
-      events.stop();
+    try (var recording = preparerUsesEventRecordingStream()) {
+      say("Resolving required modules ...");
+      preparerUsesModuleNames().forEach(resolver::resolveModule);
+      recording.stop();
     }
-    try (var events = restorerUsesEventRecordingStream()) {
-      say("Restoring missing modules recursively ...");
+    try (var recording = preparerUsesEventRecordingStream()) {
+      say("Resolving missing modules recursively ...");
       resolver.resolveMissingModules();
-      events.stop();
+      recording.stop();
     }
   }
 
-  default Path restorerUsesLibraryDirectory() {
+  default Path preparerUsesLibraryDirectory() {
     return workflow().folders().root("lib");
   }
 
-  default Set<String> restorerUsesModuleNames() {
-    return restorerFindMissingModuleNames();
+  default Set<String> preparerUsesModuleNames() {
+    return preparerFindMissingModuleNames();
   }
 
-  default Set<String> restorerFindMissingModuleNames() {
+  default Set<String> preparerFindMissingModuleNames() {
     var spaces = workflow().structure().spaces();
     var finders =
         spaces.list().stream().map(Space::modules).map(DeclaredModules::toModuleFinder).toList();
@@ -48,30 +48,30 @@ public interface Restorer extends Action {
     return Set.copyOf(missing);
   }
 
-  default RecordingStream restorerUsesEventRecordingStream() {
+  default RecordingStream preparerUsesEventRecordingStream() {
     var stream = new RecordingStream();
     stream.setOrdered(true);
     stream.setReuse(true);
-    stream.onEvent("run.bach.ModuleResolverAlreadyResolved", this::restorerOnModulePresent);
-    stream.onEvent("run.bach.ModuleResolverResolvedModule", this::restorerOnModuleResolved);
-    stream.onEvent("run.bach.ModuleResolverResolvedModules", this::restorerOnModulesResolved);
+    stream.onEvent("run.bach.ModuleResolverAlreadyResolved", this::preparerOnModulePresent);
+    stream.onEvent("run.bach.ModuleResolverResolvedModule", this::preparerOnModuleResolved);
+    stream.onEvent("run.bach.ModuleResolverResolvedModules", this::preparerOnModulesResolved);
     stream.startAsync();
     return stream;
   }
 
-  default void restorerOnModulePresent(RecordedEvent event) {
+  default void preparerOnModulePresent(RecordedEvent event) {
     var module = event.getString("module");
     var target = event.getString("target");
     log("%s -> %s".formatted(module, target));
   }
 
-  default void restorerOnModuleResolved(RecordedEvent event) {
+  default void preparerOnModuleResolved(RecordedEvent event) {
     var name = event.getString("name");
     var source = event.getString("source");
     say("%s <- %s".formatted(name, source));
   }
 
-  default void restorerOnModulesResolved(RecordedEvent event) {
+  default void preparerOnModulesResolved(RecordedEvent event) {
     var count = event.getInt("count");
     var names = event.getString("names");
     var message =

@@ -21,6 +21,7 @@ import java.security.MessageDigest;
 import java.util.Comparator;
 import java.util.List;
 import java.util.TreeSet;
+import run.bach.info.PackageUrl;
 
 public interface PathSupport {
   static String checksum(Path file, String algorithm) {
@@ -71,6 +72,9 @@ public interface PathSupport {
 
   static void copy(Path target, URI source) {
     if (!Files.exists(target)) {
+      if (source.getScheme().equals("pkg")) {
+        source = PackageUrl.parse(source).toUri();
+      }
       try (var stream =
                    source.getScheme().startsWith("http")
                            ? source.toURL().openStream()

@@ -5,14 +5,10 @@
 
 package run.bach;
 
-import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.lang.module.ModuleFinder;
 import java.lang.module.ModuleReference;
 import java.net.URI;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -21,21 +17,18 @@ import jdk.jfr.Category;
 import jdk.jfr.Name;
 import jdk.jfr.StackTrace;
 import run.bach.internal.ModulesSupport;
+import run.bach.internal.PathSupport;
 
 public interface ModuleResolver {
   void resolveModule(String name);
 
   void resolveMissingModules();
 
-  static ModuleResolver ofSingleDirectory(Path directory, String properties) {
-    return ofSingleDirectory(directory, ModuleFinders.ofProperties(properties));
+  static ModuleResolver ofSingleDirectory(Path directory, ModuleLocator locator) {
+    return new CanonicalResolver(directory, locator);
   }
 
-  static ModuleResolver ofSingleDirectory(Path directory, ModuleFinder finder) {
-    return new CanonicalResolver(directory, finder);
-  }
-
-  record CanonicalResolver(Path directory, ModuleFinder finder) implements ModuleResolver {
+  record CanonicalResolver(Path directory, ModuleLocator locator) implements ModuleResolver {
     @Override
     public void resolveModule(String name) {
       var module = ModuleFinder.of(directory).find(name);
@@ -43,15 +36,16 @@ public interface ModuleResolver {
         Event.AlreadyResolved.commit(module.get());
         return;
       }
-      var found = finder.find(name);
-      if (found.isEmpty()) {
-        throw new IllegalStateException("Module not locatable: " + name);
+      var located = locator.locate(name);
+      if (located instanceof ModuleLocator.Location.Uniform location) {
+        var source = location.uri();
+        var target = directory.resolve(name + ".jar");
+        var event = Event.ResolveModule.begin(name, source, target);
+        PathSupport.copy(target, source);
+        event.commit();
+        return;
       }
-      var source = found.get().location().orElseThrow();
-      var target = directory.resolve(name + ".jar");
-      var event = Event.ResolveModule.begin(name, source, target);
-      ModuleResolver.copy(target, source);
-      event.commit();
+      throw new UnsupportedOperationException(located.toString());
     }
 
     @Override
@@ -118,21 +112,5 @@ public interface ModuleResolver {
         }
       }
     }
-  }
-
-  private static void copy(Path target, URI source) {
-    if (!Files.exists(target)) {
-      try (var stream =
-          source.getScheme().startsWith("http")
-              ? source.toURL().openStream()
-              : Files.newInputStream(Path.of(source))) {
-        var parent = target.getParent();
-        if (parent != null) Files.createDirectories(parent);
-        Files.copy(stream, target, StandardCopyOption.REPLACE_EXISTING);
-      } catch (IOException exception) {
-        throw new UncheckedIOException(exception);
-      }
-    }
-    // TODO Verify target bits.
   }
 }

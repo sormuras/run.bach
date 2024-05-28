@@ -5,16 +5,18 @@
 
 package run.bach.workflow;
 
-public interface Builder extends Action, Cleaner, Compiler, Restorer, Tester {
+public interface Builder extends Action, Cleaner, Compiler, Preparer, Tester {
   default void build() {
     var description = builderUsesProjectDescription();
     say("Building %s ...".formatted(description));
+
     if (builderDoesCleanAtTheBeginning()) {
-      clean(); // output folders
+      clean(); // delete output folders
     }
-    restore(); // required and missing assets, aka "go offline"
-    compile(); // translate module space source files into classes, modular JAR files, and an image
+    prepare(); // resolve required and missing assets, aka "go offline"
+    compile(); // translate module space source files into classes, modular JAR files, and an images
     test(); // execute programs using artifacts compiled artifacts
+
     say("Build of %s completed.".formatted(description));
   }
 

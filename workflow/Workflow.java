@@ -5,9 +5,8 @@
 
 package run.bach.workflow;
 
-import java.lang.module.ModuleFinder;
 import java.util.function.UnaryOperator;
-import run.bach.ModuleLookup;
+import run.bach.ModuleLocator;
 import run.bach.ToolFinder;
 import run.bach.ToolRunner;
 import run.bach.internal.PathSupport;
@@ -22,7 +21,7 @@ public record Workflow(Folders folders, Structure structure, ToolRunner runner) 
     var version = System.getProperty("--project-version", "0-ea");
     var basics = new Structure.Basics(name, version);
     var spaces = new Structure.Spaces();
-    var libraries = ModuleFinder.compose();
+    var libraries = ModuleLocator.compose();
     var structure = new Structure(basics, spaces, libraries);
     var runner = ToolRunner.ofSystem();
     return new Workflow(folders, structure, runner);
@@ -40,7 +39,7 @@ public record Workflow(Folders folders, Structure structure, ToolRunner runner) 
     return new Workflow(folders, structure.withTimestamp(zonedDateTime), runner);
   }
 
-  public Workflow withLibrary(ModuleLookup library) {
+  public Workflow withLibrary(ModuleLocator library) {
     return new Workflow(folders, structure.withLibrary(library), runner);
   }
 

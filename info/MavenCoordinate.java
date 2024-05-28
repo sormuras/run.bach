@@ -9,30 +9,30 @@ import java.net.URI;
 import java.util.StringJoiner;
 
 /** Maven component representation. */
-public record MavenComponent(
+public record MavenCoordinate(
     String repository,
     String group,
     String artifact,
     String version,
     String classifier,
     String type) {
-  public static final String CENTRAL_REPOSITORY = "https://repo.maven.apache.org/maven2";
+  public static final String CENTRAL_REPOSITORY = "repo.maven.apache.org/maven2";
 
   public static final String DEFAULT_CLASSIFIER = "", DEFAULT_TYPE = "jar";
 
-  public static MavenComponent ofCentral(String group, String artifact, String version) {
-    return new MavenComponent(
+  public static MavenCoordinate ofCentral(String group, String artifact, String version) {
+    return new MavenCoordinate(
         CENTRAL_REPOSITORY, group, artifact, version, DEFAULT_CLASSIFIER, DEFAULT_TYPE);
   }
 
-  public static MavenComponent ofCentral(
+  public static MavenCoordinate ofCentral(
       String group, String artifact, String version, String classifier) {
-    return new MavenComponent(
+    return new MavenCoordinate(
         CENTRAL_REPOSITORY, group, artifact, version, classifier, DEFAULT_TYPE);
   }
 
   public URI toUri() {
-    var joiner = new StringJoiner("/").add(repository);
+    var joiner = new StringJoiner("/").add("https://" + repository);
     joiner.add(group.replace('.', '/')).add(artifact).add(version);
     var file = artifact + '-' + (classifier.isBlank() ? version : version + '-' + classifier);
     return URI.create(joiner.add(file + '.' + type).toString());

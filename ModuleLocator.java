@@ -7,6 +7,7 @@ package run.bach;
 
 import java.net.URI;
 import java.util.List;
+import java.util.Set;
 
 /** Connects zero or more module names to their locations, usually uniform resource identifiers. */
 @FunctionalInterface
@@ -18,6 +19,11 @@ public interface ModuleLocator {
    * @return A location a module with the given name
    */
   Location locate(String name);
+
+  /** {@return the names of modules this locator can locate } */
+  default Set<String> names() {
+    return Set.of();
+  }
 
   /** A nominal reference to the location of a module. */
   sealed interface Location extends ModuleLocator {

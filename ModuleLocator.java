@@ -48,6 +48,11 @@ public interface ModuleLocator {
 
     record Uniform(String name, URI uri) implements Location {
       @Override
+      public Set<String> names() {
+        return Set.of(name);
+      }
+
+      @Override
       public Location locate(String name) {
         return this.name.equals(name) ? this : new Unknown(name);
       }
@@ -65,6 +70,11 @@ public interface ModuleLocator {
   record CompositeLocator(List<ModuleLocator> locators) implements ModuleLocator {
     public CompositeLocator {
       locators = List.copyOf(locators);
+    }
+
+    @Override
+    public Set<String> names() {
+      return Set.copyOf(locators.stream().flatMap(locator -> locator.names().stream()).toList());
     }
 
     @Override

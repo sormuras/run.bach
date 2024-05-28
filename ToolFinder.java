@@ -107,6 +107,11 @@ public interface ToolFinder {
   }
 
   record CompositeFinder(List<ToolFinder> finders) implements ToolFinder {
+
+    public CompositeFinder {
+      finders = List.copyOf(finders);
+    }
+
     @Override
     public List<Tool> tools() {
       return finders.stream().flatMap(finder -> finder.tools().stream()).toList();
@@ -122,7 +127,11 @@ public interface ToolFinder {
     }
   }
 
-  record DefaultFinder(List<Tool> tools) implements ToolFinder {}
+  record DefaultFinder(List<Tool> tools) implements ToolFinder {
+    public DefaultFinder {
+      tools = List.copyOf(tools);
+    }
+  }
 
   record SystemFinder() implements ToolFinder {
     @Override

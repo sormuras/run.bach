@@ -17,22 +17,27 @@ public sealed interface PackageUrl {
   URI toUri();
 
   static PackageUrl parse(URI uri) {
-    if (!uri.getScheme().equals("pkg")) throw new IllegalArgumentException();
-    return parse(uri.getSchemeSpecificPart());
+    if (!uri.getScheme().equals("pkg")) throw new IllegalArgumentException(uri.toString());
+    return parse(uri.toString());
   }
 
   static PackageUrl parse(String string) {
-    var groupAndFile = string.split("/");
-    assert groupAndFile[0].equals("maven");
-    var group = groupAndFile[1];
-    var artifactAndVersion = groupAndFile[2].split("@");
-    var artifact = artifactAndVersion[0];
-    var version = artifactAndVersion[1];
-    var coordinate = MavenCoordinate.ofCentral(group, artifact, version);
-    return new MavenPurl(coordinate);
+    if (string.startsWith("pkg:maven/")) return MavenPurl.parse(string);
+    throw new UnsupportedOperationException(string);
   }
 
   record MavenPurl(MavenCoordinate coordinate) implements PackageUrl {
+    public static MavenPurl parse(String string) {
+      var groupAndFile = string.split("/");
+      assert groupAndFile[0].equals("pkg:maven");
+      var group = groupAndFile[1];
+      var artifactAndVersion = groupAndFile[2].split("@");
+      var artifact = artifactAndVersion[0];
+      var version = artifactAndVersion[1];
+      var coordinate = MavenCoordinate.ofCentral(group, artifact, version);
+      return new MavenPurl(coordinate);
+    }
+
     @Override
     public URI toUri() {
       return coordinate.toUri();

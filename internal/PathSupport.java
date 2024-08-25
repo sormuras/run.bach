@@ -76,9 +76,9 @@ public interface PathSupport {
         source = PackageUrl.parse(source).toUri();
       }
       try (var stream =
-                   source.getScheme().startsWith("http")
-                           ? source.toURL().openStream()
-                           : Files.newInputStream(Path.of(source))) {
+          source.getScheme().startsWith("http")
+              ? source.toURL().openStream()
+              : Files.newInputStream(Path.of(source))) {
         var parent = target.getParent();
         if (parent != null) Files.createDirectories(parent);
         Files.copy(stream, target, StandardCopyOption.REPLACE_EXISTING);

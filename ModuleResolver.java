@@ -105,6 +105,7 @@ public interface ModuleResolver {
       static final class ResolveModules extends Event {
         int count;
         String names;
+
         void commit(Collection<String> modules) {
           count = modules.size();
           names = String.join(",", modules);

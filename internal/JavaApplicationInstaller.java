@@ -68,7 +68,7 @@ public record JavaApplicationInstaller(Identifier identifier, URI source) implem
         if (matcher.matches()) {
           var identifier =
               Tool.Identifier.of(
-                  matcher.group("namespace").replace('/', '.'),
+                  "maven/" + matcher.group("namespace").replace('/', '.'),
                   matcher.group("name"),
                   matcher.group("version"));
           return Optional.of(new JavaApplicationInstaller(identifier, source));
@@ -87,7 +87,9 @@ public record JavaApplicationInstaller(Identifier identifier, URI source) implem
         if (matcher.matches()) {
           var identifier =
               Tool.Identifier.of(
-                  matcher.group("namespace"), matcher.group("name"), matcher.group("version"));
+                  "github/releases/" + matcher.group("namespace"),
+                  matcher.group("name"),
+                  matcher.group("version"));
           return Optional.of(new JavaApplicationInstaller(identifier, source));
         }
       }
@@ -103,7 +105,28 @@ public record JavaApplicationInstaller(Identifier identifier, URI source) implem
         if (matcher.matches()) {
           var identifier =
               Tool.Identifier.of(
-                  matcher.group("namespace"), matcher.group("name"), matcher.group("version"));
+                  "github/raw/" + matcher.group("namespace"),
+                  matcher.group("name"),
+                  matcher.group("version"));
+          return Optional.of(new JavaApplicationInstaller(identifier, source));
+        }
+      }
+      /* Test for GitHub Gist raw resources */ {
+        var pattern =
+            Pattern.compile(
+                "https://gist\\.githubusercontent\\.com"
+                    + "/(?<namespace>[^/]+)"
+                    + "/(?<id>[^/]+)"
+                    + "/raw"
+                    + "/(?<version>[^/]+)"
+                    + "/(?<name>[^/]+)");
+        var matcher = pattern.matcher(string);
+        if (matcher.matches()) {
+          var identifier =
+              Tool.Identifier.of(
+                  "github/gist/" + matcher.group("namespace"),
+                  matcher.group("name"),
+                  matcher.group("version"));
           return Optional.of(new JavaApplicationInstaller(identifier, source));
         }
       }

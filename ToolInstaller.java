@@ -135,8 +135,15 @@ public interface ToolInstaller {
 
   record Finder(List<Tool> tools, Mode mode, Path installationHomeDirectory) implements ToolFinder {
     public Finder with(ToolInstaller installer) {
-      var identifier = Tool.Identifier.of(installer);
+      var namespace = installer.namespace();
+      var name = installer.name();
+      var version = installer.version();
+      var identifier = Tool.Identifier.of(namespace, name, version);
       return with(identifier, installer);
+    }
+
+    public Finder with(String string) {
+        return with(ToolInstaller.find(string).orElseThrow(() -> new ToolNotFoundException(string)));
     }
 
     public Finder with(String id, ToolInstaller installer) {

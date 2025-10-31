@@ -143,15 +143,6 @@ public record Tool(Identifier identifier, ToolProvider provider) {
       return new Identifier(namespace, name, Optional.ofNullable(version));
     }
 
-    public static Identifier of(ToolInstaller installer) {
-      var type = installer.getClass();
-      var module = type.getModule();
-      var namespace = module.isNamed() ? module.getName() : type.getPackageName();
-      var name = installer.name();
-      var version = installer.version();
-      return Identifier.of(namespace, name, version);
-    }
-
     public static Identifier of(ToolProvider provider) {
       var type = provider.getClass();
       var module = type.getModule();
